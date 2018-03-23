@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+	<name>Room Food</name>
+	<author>Uuugggg</author>
+	<targetVersion>0.18.0</targetVersion>
+	<description>Prefer to get food from your current room.
+
+Colonists will get food from the nearest room with a table, before going elsewhere.
+
+Food in hospital rooms will also be used for patients in that hospital.
+
+You'll probably want RimFridge for this to make sense.</description>
+	<url>https://steamcommunity.com/id/Uuugggg/myworkshopfiles/?appid=294100</url>
+</ModMetaData>
