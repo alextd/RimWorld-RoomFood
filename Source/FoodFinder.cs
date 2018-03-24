@@ -13,7 +13,7 @@ namespace Room_Food
 	//public static Thing BestFoodSourceOnMap(Pawn getter, Pawn eater, bool desperate, out ThingDef foodDef, FoodPreferability maxPref, bool allowPlant, bool allowDrug, bool allowCorpse, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden, bool allowSociallyImproper, bool allowHarvest)
 	static class FoodFinder
 	{
-		public static bool Prefix(ref Thing __result, Pawn getter, Pawn eater, bool desperate, ref ThingDef foodDef, FoodPreferability maxPref, bool allowDrug, bool allowForbidden, bool allowCorpse, bool allowSociallyImproper)
+		public static bool Prefix(ref Thing __result, Pawn getter, Pawn eater, bool desperate, ref ThingDef foodDef, FoodPreferability maxPref, bool allowDrug, bool allowForbidden, bool allowCorpse)
 		{
 			if(getter.IsFreeColonist && eater.RaceProps.Humanlike)
 			{
@@ -57,7 +57,6 @@ namespace Room_Food
 				&& (desperate || !t.IsNotFresh())
 				&& !t.IsDessicated()
 				&& eater.RaceProps.WillAutomaticallyEat(t)
-				&& (allowSociallyImproper || (t.IsSociallyProper(getter) && t.IsSociallyProper(eater, eater.IsPrisonerOfColony, !getter.RaceProps.Animal)))
 				&& getter.AnimalAwareOf(t)
 				&& getter.CanReserve(t);
 
