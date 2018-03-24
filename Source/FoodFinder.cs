@@ -17,23 +17,29 @@ namespace Room_Food
 		{
 			if(getter.IsFreeColonist && eater.RaceProps.Humanlike)
 			{
-				Room room = eater.GetRoom();
+				Room room = null;
 
 				if (getter == eater)
 				{
-					float searchRadius = 100f;
+					float searchRadius = 9999;
+					Predicate<Thing> validator =
+						(Thing t) => t is Building b
+						&& b.def.surfaceType == SurfaceType.Eat
+						&& b.Position.GetDangerFor(getter, t.Map) == Danger.None
+						&& !b.GetRoom().isPrisonCell // Free colonist can't be in a prison cell
+						&& b.GetRoom().Regions.Any(r => !r.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree).NullOrEmpty());
+
 					Thing table = GenClosest.ClosestThingReachable(getter.Position, getter.Map,
 						ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial),
-						PathEndMode.OnCell, TraverseParms.For(getter), searchRadius,
-						(Thing t) => t is Building b && b.def.surfaceType == SurfaceType.Eat && t.Position.GetDangerFor(getter, t.Map) == Danger.None);
+						PathEndMode.OnCell, TraverseParms.For(getter), searchRadius, validator);
+
 					if (table != null)
-					{
 						room = table.GetRoom();
-					}
 				}
+				else room = eater.GetRoom();
 				if (room == null || room.IsHuge) return true;
 
-				Log.Message(getter + " finding food for " + eater);
+				Log.Message(getter + " finding food for " + eater + " in " + room);
 
 
 				FoodPreferability minPref = eater.NonHumanlikeOrWildMan() ? minPref = FoodPreferability.NeverForNutrition
