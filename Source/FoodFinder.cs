@@ -13,7 +13,7 @@ namespace Room_Food
 	//public static Thing BestFoodSourceOnMap(Pawn getter, Pawn eater, bool desperate, out ThingDef foodDef, FoodPreferability maxPref, bool allowPlant, bool allowDrug, bool allowCorpse, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden, bool allowSociallyImproper, bool allowHarvest)
 	static class FoodFinder
 	{
-		public static bool Prefix(ref Thing __result, Pawn getter, Pawn eater, bool desperate, ref ThingDef foodDef, FoodPreferability maxPref, bool allowDrug, bool allowForbidden, bool allowCorpse)
+		public static bool Prefix(ref Thing __result, Pawn getter, Pawn eater, ref ThingDef foodDef, FoodPreferability maxPref, bool allowDrug, bool allowForbidden)
 		{
 			if(getter.IsFreeColonist && eater.RaceProps.Humanlike)
 			{
@@ -42,8 +42,7 @@ namespace Room_Food
 				Log.Message(getter + " finding food for " + eater + " in " + room);
 
 
-				FoodPreferability minPref = eater.NonHumanlikeOrWildMan() ? minPref = FoodPreferability.NeverForNutrition
-					: desperate ? FoodPreferability.DesperateOnly
+				FoodPreferability minPref = eater.NonHumanlikeOrWildMan() ? FoodPreferability.NeverForNutrition
 					: eater.needs.food.CurCategory <= HungerCategory.UrgentlyHungry ? FoodPreferability.RawBad : FoodPreferability.MealAwful;
 
 				//Some of these are pointless but hey.
@@ -52,9 +51,9 @@ namespace Room_Food
 				&& t.IngestibleNow && t.def.IsNutritionGivingIngestible
 				&& t.def.ingestible.preferability >= minPref
 				&& t.def.ingestible.preferability <= maxPref
-				&& (allowCorpse || !(t is Corpse))
+				&& !(t is Corpse)
 				&& (allowDrug || !t.def.IsDrug)
-				&& (desperate || !t.IsNotFresh())
+				&& !t.IsNotFresh()
 				&& !t.IsDessicated()
 				&& eater.RaceProps.WillAutomaticallyEat(t)
 				&& getter.AnimalAwareOf(t)
