@@ -1,2 +1,1 @@
-# RimWorld-RoomFood
-A mod for rimworld - prefer to grab food from the dining room, or hospital
+Steam link : http://steamcommunity.com/sharedfiles/filedetails/?id=1339148170
