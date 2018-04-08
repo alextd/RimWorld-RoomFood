@@ -6,7 +6,7 @@
 	<description>Prefer to get food from the dining room.
 
 Colonists will get food from the nearest room with a table, before checking elsewhere.
-This includes lower quality food. The assumption is that you put the food in that room to be eaten. So colonists do will that.
+This includes lower quality food. The assumption is that you put the food in that room to be eaten. So colonists do will do that.
 
 Food in hospital rooms will also be used for patients in that hospital, and the same for food in prisons for prisoners.
 
