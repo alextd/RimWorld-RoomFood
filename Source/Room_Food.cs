@@ -26,7 +26,7 @@ namespace Room_Food
 
 		// public override string SettingsCategory()
 		// {
-			// return "RoomFood".Translate();
+			// return "TD.RoomFood".Translate();
 		// }
 	}
 }
