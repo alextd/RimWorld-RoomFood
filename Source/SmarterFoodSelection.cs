@@ -16,10 +16,19 @@ namespace Room_Food
 	{
 		static SmarterFoodSelectionSupport()
 		{
+			try
+			{
+				Patch();
+			}
+			catch (Exception) { }
+		}
+
+		public static void Patch()
+		{
 			HarmonyInstance harmony = HarmonyInstance.Create("Uuugggg.rimworld.Room_Food.main");
 
-			harmony.Patch(AccessTools.Method(typeof(TryFindBestFoodSourceFor), "Internal"),
-				new HarmonyMethod(typeof(SmarterFoodSelectionSupport), "Prefix"), null);
+			if (AccessTools.Method(typeof(TryFindBestFoodSourceFor), "Internal") is MethodInfo sfsMethod)
+				harmony.Patch(sfsMethod, new HarmonyMethod(typeof(SmarterFoodSelectionSupport), "Prefix"), null);
 		}
 		//internal static bool Internal(Pawn getter, Pawn eater, bool desperate, out Thing foodSource, out ThingDef foodDef, bool canRefillDispenser = true, bool canUseInventory = true, bool allowForbidden = false, bool allowCorpse = true, Policy forcedPolicy = null)
 		public static bool Prefix(ref bool __result, Pawn getter, Pawn eater, out Thing foodSource, out ThingDef foodDef, bool canRefillDispenser, bool allowForbidden)
