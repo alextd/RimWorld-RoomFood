@@ -15,7 +15,18 @@ namespace Room_Food
 	{
 		public static bool Prefix(ref Thing __result, Pawn getter, Pawn eater, ref ThingDef foodDef, FoodPreferability maxPref, bool allowDrug, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden)
 		{
-			if(getter.IsFreeColonist && eater.RaceProps.Humanlike)
+			if (FindRoomFood(getter, eater, maxPref, allowDrug, allowDispenserFull, allowDispenserEmpty, allowForbidden) is Thing food)
+			{
+				foodDef = FoodUtility.GetFinalIngestibleDef(food);
+				__result = food;
+				return false;
+			}
+			return true;
+		}
+
+		public static Thing FindRoomFood(Pawn getter, Pawn eater, FoodPreferability maxPref, bool allowDrug, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden)
+		{
+			if (getter.IsFreeColonist && eater.RaceProps.Humanlike)
 			{
 				Room room = null;
 
@@ -39,7 +50,7 @@ namespace Room_Food
 						room = table.GetRoom();
 				}
 				else room = eater.GetRoom();
-				if (room == null || room.IsHuge) return true;
+				if (room == null || room.IsHuge) return null;
 
 				Log.Message(getter + " finding food for " + eater + " in " + room);
 
@@ -83,15 +94,11 @@ namespace Room_Food
 						.Where(t => foodValidator(t)));
 
 				Thing foundFood = GenClosest.ClosestThing_Global(eater.Position, foods, 99999f, null, f => FoodUtility.FoodOptimality(eater, f, FoodUtility.GetFinalIngestibleDef(f), 0f));
-				if(foundFood != null)
-				{
-					Log.Message("Closest food is " + foundFood);
-					__result = foundFood;
-					foodDef = FoodUtility.GetFinalIngestibleDef(foundFood);
-					return false;
-				}
+
+				Log.Message("Closest food is " + foundFood);
+				return foundFood;
 			}
-			return true;
+			return null;
 		}
 	}
 }
