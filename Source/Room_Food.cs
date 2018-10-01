@@ -15,7 +15,7 @@ namespace Room_Food
 			HarmonyInstance.DEBUG = true;
 #endif
 			HarmonyInstance harmony = HarmonyInstance.Create("Uuugggg.rimworld.Room_Food.main");
-			harmony.PatchAll(Assembly.GetExecutingAssembly());
+			harmony.PatchAll();
 		}
 
 		// public override void DoSettingsWindowContents(Rect inRect)
