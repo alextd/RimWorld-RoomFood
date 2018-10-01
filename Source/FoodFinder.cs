@@ -42,7 +42,7 @@ namespace Room_Food
 					&& !b.GetRoom().isPrisonCell // Free colonist can't be in a prison cell
 					&& b.GetRoom().Regions.Any(r => !r.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree).NullOrEmpty());
 
-				Log.Message("Buildings are: " + getter.Map.listerBuildings.allBuildingsColonist.ToStringSafeEnumerable());
+				Log.Message($"Buildings are: {getter.Map.listerBuildings.allBuildingsColonist.ToStringSafeEnumerable()}");
 				Thing table = GenClosest.ClosestThingReachable(getter.Position, getter.Map,
 					ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial),
 					PathEndMode.OnCell, TraverseParms.For(getter), searchRadius, tableValidator);
@@ -55,11 +55,11 @@ namespace Room_Food
 			if (room == null || room.IsHuge)
 				return null;
 
-			Log.Message(getter + " finding food for " + eater + " in " + room);
+			Log.Message("{getter} finding food for {eater} in {room}");
 			
 			FoodPreferability minPref = eater.NonHumanlikeOrWildMan() ? FoodPreferability.NeverForNutrition
 				: eater.needs.food.CurCategory > HungerCategory.UrgentlyHungry ? FoodPreferability.RawBad : FoodPreferability.MealAwful;
-			Log.Message(eater + " is " + eater.needs.food.CurCategory + ", prefers" + minPref);
+			Log.Message("{eater} is {eater.needs.food.CurCategory}, prefers{minPref}");
 
 			//Some of these are pointless but hey.
 			bool getterCanManipulate = getter.RaceProps.ToolUser && getter.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
@@ -97,7 +97,7 @@ namespace Room_Food
 
 			Thing foundFood = GenClosest.ClosestThing_Global(eater.Position, foods, 99999f, null, f => FoodUtility.FoodOptimality(eater, f, FoodUtility.GetFinalIngestibleDef(f), 0f));
 
-			Log.Message("Closest food is " + foundFood);
+			Log.Message($"Closest food is {foundFood}");
 			return foundFood;
 		}
 	}
