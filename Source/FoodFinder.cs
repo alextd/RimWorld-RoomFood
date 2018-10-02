@@ -10,6 +10,7 @@ using Verse.AI;
 namespace Room_Food
 {
 	[HarmonyPatch(typeof(FoodUtility), "BestFoodSourceOnMap")]
+	[HarmonyPriority(Priority.Last)] // Harmony Priority last means prefix goes first
 	//public static Thing BestFoodSourceOnMap(Pawn getter, Pawn eater, bool desperate, out ThingDef foodDef, FoodPreferability maxPref, bool allowPlant, bool allowDrug, bool allowCorpse, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden, bool allowSociallyImproper, bool allowHarvest)
 	static class FoodFinder
 	{
