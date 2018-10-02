@@ -56,11 +56,11 @@ namespace Room_Food
 			if (room == null || room.IsHuge)
 				return null;
 
-			Log.Message("{getter} finding food for {eater} in {room}");
+			Log.Message($"{getter} finding food for {eater} in {room}");
 			
 			FoodPreferability minPref = eater.NonHumanlikeOrWildMan() ? FoodPreferability.NeverForNutrition
 				: eater.needs.food.CurCategory > HungerCategory.UrgentlyHungry ? FoodPreferability.RawBad : FoodPreferability.MealAwful;
-			Log.Message("{eater} is {eater.needs.food.CurCategory}, prefers{minPref}");
+			Log.Message($"{eater} is {eater.needs.food.CurCategory}, prefers{minPref}");
 
 			//Some of these are pointless but hey.
 			bool getterCanManipulate = getter.RaceProps.ToolUser && getter.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
