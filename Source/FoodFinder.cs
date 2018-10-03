@@ -86,7 +86,7 @@ namespace Room_Food
 				&& (allowDrug || !t.def.IsDrug)
 				&& !t.IsNotFresh()
 				&& !t.IsDessicated()
-				&& eater.RaceProps.WillAutomaticallyEat(t)
+				&& eater.RaceProps.CanEverEat(t)
 				&& getter.AnimalAwareOf(t)
 				&& getter.CanReserve(t);
 			};
