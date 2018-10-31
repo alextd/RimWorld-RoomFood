@@ -6,7 +6,6 @@ using Harmony;
 using RimWorld;
 using Verse;
 using System.Reflection;
-using WM.SmarterFoodSelection.Detours.FoodUtility;
 
 namespace Room_Food
 {
@@ -27,7 +26,8 @@ namespace Room_Food
 		{
 			HarmonyInstance harmony = HarmonyInstance.Create("Uuugggg.rimworld.Room_Food.main");
 
-			if (AccessTools.Method(typeof(TryFindBestFoodSourceFor), "Internal") is MethodInfo sfsMethod)
+			Type sfsType = AccessTools.TypeByName("WM.SmarterFoodSelection.Detours.FoodUtility.TryFindBestFoodSourceFor");
+			if (sfsType != null && AccessTools.Method(sfsType, "Internal") is MethodInfo sfsMethod)
 				harmony.Patch(sfsMethod, new HarmonyMethod(typeof(SmarterFoodSelectionSupport), "Prefix"), null);
 		}
 		//internal static bool Internal(Pawn getter, Pawn eater, bool desperate, out Thing foodSource, out ThingDef foodDef, bool canRefillDispenser = true, bool canUseInventory = true, bool allowForbidden = false, bool allowCorpse = true, Policy forcedPolicy = null)
