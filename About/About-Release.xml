@@ -2,7 +2,9 @@
 <ModMetaData>
 	<name>Room Food</name>
 	<author>Uuugggg</author>
-	<targetVersion>1.0.0</targetVersion>
+	<supportedVersions>
+		<li>1.0.0</li>
+	</supportedVersions>
 	<description>Prefer to get food from the dining room.
 
 Colonists will get food from the nearest room with a table, before checking elsewhere.
