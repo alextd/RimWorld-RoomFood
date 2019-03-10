@@ -59,7 +59,7 @@ namespace Room_Food
 			Log.Message($"{getter} finding food for {eater} in {room}");
 			
 			FoodPreferability minPref = eater.NonHumanlikeOrWildMan() ? FoodPreferability.NeverForNutrition
-				: eater.needs.food.CurCategory > HungerCategory.UrgentlyHungry ? FoodPreferability.RawBad : FoodPreferability.MealAwful;
+				: eater.needs.food.CurCategory >= HungerCategory.UrgentlyHungry ? FoodPreferability.RawBad : FoodPreferability.MealAwful;
 			Log.Message($"{eater} is {eater.needs.food.CurCategory}, prefers{minPref}");
 
 			//Some of these are pointless but hey.
