@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Harmony;
+using HarmonyLib;
 using RimWorld;
 using Verse;
 using System.Reflection;
@@ -24,7 +24,7 @@ namespace Room_Food
 
 		public static void Patch()
 		{
-			HarmonyInstance harmony = HarmonyInstance.Create("Uuugggg.rimworld.Room_Food.main");
+			Harmony harmony = new Harmony("Uuugggg.rimworld.Room_Food.main");
 
 			Type sfsType = AccessTools.TypeByName("WM.SmarterFoodSelection.Detours.FoodUtility.TryFindBestFoodSourceFor");
 			if (sfsType != null && AccessTools.Method(sfsType, "Internal") is MethodInfo sfsMethod)
