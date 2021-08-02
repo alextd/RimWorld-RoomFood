@@ -35,15 +35,14 @@ namespace Room_Food
 			if (getter == eater)
 			{
 				float searchRadius = 9999;
-				Predicate<Thing> tableValidator =
-					(Thing t) => t is Building b
-					&& b.def.surfaceType == SurfaceType.Eat
-					&& b.Position.GetDangerFor(getter, t.Map) == Danger.None
-					&& !b.GetRoom().IsHuge
-					&& !b.GetRoom().isPrisonCell // Free colonist can't be in a prison cell
-					&& b.GetRoom().Regions.Any(r => !r.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree).NullOrEmpty());
+		bool tableValidator(Thing t) => t is Building b
+			&& b.def.surfaceType == SurfaceType.Eat
+			&& b.Position.GetDangerFor(getter, t.Map) == Danger.None
+			&& !b.GetRoom().IsHuge
+			&& !b.GetRoom().IsPrisonCell // Free colonist can't be in a prison cell
+			&& b.GetRoom().Regions.Any(r => !r.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree).NullOrEmpty());
 
-				Log.Message($"Buildings are: {getter.Map.listerBuildings.allBuildingsColonist.ToStringSafeEnumerable()}");
+		Log.Message($"Buildings are: {getter.Map.listerBuildings.allBuildingsColonist.ToStringSafeEnumerable()}");
 				Thing table = GenClosest.ClosestThingReachable(getter.Position, getter.Map,
 					ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial),
 					PathEndMode.OnCell, TraverseParms.For(getter), searchRadius, tableValidator);
@@ -64,34 +63,34 @@ namespace Room_Food
 
 			//Some of these are pointless but hey.
 			bool getterCanManipulate = getter.RaceProps.ToolUser && getter.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
-			Predicate<Thing> foodValidator = delegate (Thing t)
-			{
-				if (t is Building_NutrientPasteDispenser n)
-					return allowDispenserFull
-						&& n.DispensableDef.ingestible.preferability >= minPref
-						&& n.DispensableDef.ingestible.preferability <= maxPref
-						&& getterCanManipulate
-						&& !getter.IsWildMan()
-						&& t.Faction == getter.Faction
-						&& n.powerComp.PowerOn
-						&& (allowDispenserEmpty || n.HasEnoughFeedstockInHoppers())
-						&& t.InteractionCell.Standable(t.Map)
-						&& getter.Map.reachability.CanReachNonLocal(getter.Position, new TargetInfo(t.InteractionCell, t.Map), PathEndMode.OnCell, TraverseParms.For(getter, Danger.Some));
+			bool foodValidator(Thing t)
+	  {
+		if (t is Building_NutrientPasteDispenser n)
+		  return allowDispenserFull
+			  && n.DispensableDef.ingestible.preferability >= minPref
+			  && n.DispensableDef.ingestible.preferability <= maxPref
+			  && getterCanManipulate
+			  && !getter.IsWildMan()
+			  && t.Faction == getter.Faction
+			  && n.powerComp.PowerOn
+			  && (allowDispenserEmpty || n.HasEnoughFeedstockInHoppers())
+			  && t.InteractionCell.Standable(t.Map)
+			  && getter.Map.reachability.CanReachNonLocal(getter.Position, new TargetInfo(t.InteractionCell, t.Map), PathEndMode.OnCell, TraverseParms.For(getter, Danger.Some));
 
-				return (allowForbidden || !t.IsForbidden(getter))
-				&& t.IngestibleNow && t.def.IsNutritionGivingIngestible
-				&& t.def.ingestible.preferability >= minPref
-				&& t.def.ingestible.preferability <= maxPref
-				&& !(t is Corpse)
-				&& (allowDrug || !t.def.IsDrug)
-				&& !t.IsNotFresh()
-				&& !t.IsDessicated()
-				&& eater.WillEat(t, getter)
-				&& getter.AnimalAwareOf(t)
-				&& getter.CanReserve(t);
-			};
+		return (allowForbidden || !t.IsForbidden(getter))
+		&& t.IngestibleNow && t.def.IsNutritionGivingIngestible
+		&& t.def.ingestible.preferability >= minPref
+		&& t.def.ingestible.preferability <= maxPref
+		&& !(t is Corpse)
+		&& (allowDrug || !t.def.IsDrug)
+		&& !t.IsNotFresh()
+		&& !t.IsDessicated()
+		&& eater.WillEat(t, getter)
+		&& getter.AnimalAwareOf(t)
+		&& getter.CanReserve(t);
+	  }
 
-			List<Thing> foods = new List<Thing>();
+	  List<Thing> foods = new List<Thing>();
 			foreach (Region region in room.Regions)
 				foods.AddRange(region.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree)
 					.Where(t => foodValidator(t)));
