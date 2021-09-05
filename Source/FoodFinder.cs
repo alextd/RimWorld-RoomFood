@@ -40,7 +40,7 @@ namespace Room_Food
 					&& b.def.surfaceType == SurfaceType.Eat
 					&& b.Position.GetDangerFor(getter, t.Map) == Danger.None
 					&& !b.GetRoom().IsHuge
-					&& !b.GetRoom().isPrisonCell // Free colonist can't be in a prison cell
+					&& !b.GetRoom().IsPrisonCell // Free colonist can't be in a prison cell
 					&& b.GetRoom().Regions.Any(r => !r.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree).NullOrEmpty());
 
 				Log.Message($"Buildings are: {getter.Map.listerBuildings.allBuildingsColonist.ToStringSafeEnumerable()}");
