@@ -6,14 +6,9 @@ using RimWorld;
 
 namespace Room_Food
 {
-	class Settings : ModSettings
+	public class Settings : ModSettings
 	{
 		public bool setting;
-
-		public static Settings Get()
-		{
-			return LoadedModManager.GetMod<Room_Food.Mod>().GetSettings<Settings>();
-		}
 
 		public void DoWindowContents(Rect wrect)
 		{
