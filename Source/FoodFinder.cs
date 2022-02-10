@@ -51,7 +51,7 @@ namespace Room_Food
 				if (table != null)
 					room = table.GetRoom();
 			}
-			else room = eater.GetRoom();
+			else room = eater.GetRoom();//getter Serving food to eater
 
 			if (room == null || room.IsHuge)
 				return null;
@@ -76,19 +76,20 @@ namespace Room_Food
 						&& n.powerComp.PowerOn
 						&& (allowDispenserEmpty || n.HasEnoughFeedstockInHoppers())
 						&& t.InteractionCell.Standable(t.Map)
-						&& getter.Map.reachability.CanReachNonLocal(getter.Position, new TargetInfo(t.InteractionCell, t.Map), PathEndMode.OnCell, TraverseParms.For(getter, Danger.Some));
+						&& getter.Map.reachability.CanReachNonLocal(getter.Position, new TargetInfo(t.InteractionCell, t.Map), PathEndMode.OnCell, TraverseParms.For(getter, Danger.Some))
+						&& eater.WillEat(n.DispensableDef, getter);
 
 				return (allowForbidden || !t.IsForbidden(getter))
-				&& t.IngestibleNow && t.def.IsNutritionGivingIngestible
-				&& t.def.ingestible.preferability >= minPref
-				&& t.def.ingestible.preferability <= maxPref
-				&& !(t is Corpse)
-				&& (allowDrug || !t.def.IsDrug)
-				&& !t.IsNotFresh()
-				&& !t.IsDessicated()
-				&& eater.WillEat(t, getter)
-				&& getter.AnimalAwareOf(t)
-				&& getter.CanReserve(t);
+					&& t.IngestibleNow && t.def.IsNutritionGivingIngestible
+					&& t.def.ingestible.preferability >= minPref
+					&& t.def.ingestible.preferability <= maxPref
+					&& !(t is Corpse)
+					&& (allowDrug || !t.def.IsDrug)
+					&& !t.IsNotFresh()
+					&& !t.IsDessicated()
+					&& eater.WillEat(t, getter)
+					&& getter.AnimalAwareOf(t)
+					&& getter.CanReserve(t);
 			};
 
 			List<Thing> foods = new List<Thing>();
