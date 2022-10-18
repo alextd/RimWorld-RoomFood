@@ -27,6 +27,7 @@ namespace Room_Food
 
 		public static Thing FindRoomFood(Pawn getter, Pawn eater, FoodPreferability maxPref, bool allowDrug, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden)
 		{
+			Log.Message($"RoomFood for {getter}:{eater}, {maxPref}, {allowDrug}, {allowDispenserFull}, {allowDispenserEmpty}, {allowForbidden}");
 			if (!getter.IsFreeColonist || !eater.RaceProps.Humanlike)
 				return null;
 
@@ -48,10 +49,12 @@ namespace Room_Food
 					ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial),
 					PathEndMode.OnCell, TraverseParms.For(getter), searchRadius, tableValidator);
 
+				Log.Message($"Table is {table}");
 				if (table != null)
 					room = table.GetRoom();
 			}
 			else room = eater.GetRoom();//getter Serving food to eater
+			Log.Message($"Room is {room}");
 
 			if (room == null || room.IsHuge)
 				return null;
