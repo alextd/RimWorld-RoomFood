@@ -9,7 +9,7 @@ using Verse.AI;
 
 namespace Room_Food
 {
-	[HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.BestFoodSourceOnMap_NewTemp)]
+	[HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.BestFoodSourceOnMap_NewTemp))]
 	[HarmonyPriority(Priority.Last)] // Harmony Priority last means prefix goes first
 	//public static Thing BestFoodSourceOnMap(Pawn getter, Pawn eater, bool desperate, out ThingDef foodDef, FoodPreferability maxPref, bool allowPlant, bool allowDrug, bool allowCorpse, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden, bool allowSociallyImproper, bool allowHarvest)
 	static class FoodFinder
@@ -80,7 +80,7 @@ namespace Room_Food
 						&& (allowDispenserEmpty || n.HasEnoughFeedstockInHoppers())
 						&& t.InteractionCell.Standable(t.Map)
 						&& getter.Map.reachability.CanReachNonLocal(getter.Position, new TargetInfo(t.InteractionCell, t.Map), PathEndMode.OnCell, TraverseParms.For(getter, Danger.Some))
-						&& eater.WillEat(n.DispensableDef, getter);
+						&& eater.WillEat_NewTemp(n.DispensableDef, getter);
 
 				return (allowForbidden || !t.IsForbidden(getter))
 					&& t.IngestibleNow && t.def.IsNutritionGivingIngestible
@@ -90,7 +90,7 @@ namespace Room_Food
 					&& (allowDrug || !t.def.IsDrug)
 					&& !t.IsNotFresh()
 					&& !t.IsDessicated()
-					&& eater.WillEat(t, getter)
+					&& eater.WillEat_NewTemp(t, getter)
 					&& getter.AnimalAwareOf(t)
 					&& getter.CanReserve(t);
 			};
