@@ -8,14 +8,14 @@ namespace Room_Food
 {
 	public class Settings : ModSettings
 	{
-		public bool setting;
+		public int maxDistanceToTable = 100;
 
 		public void DoWindowContents(Rect wrect)
 		{
 			var options = new Listing_Standard();
 			options.Begin(wrect);
-			
-			options.CheckboxLabeled("Sample setting", ref setting);
+
+			maxDistanceToTable = (int)options.SliderLabeled($"Distance to look for a table: {maxDistanceToTable}", maxDistanceToTable, 1, 200);
 			options.Gap();
 
 			options.End();
@@ -23,7 +23,7 @@ namespace Room_Food
 		
 		public override void ExposeData()
 		{
-			Scribe_Values.Look(ref setting, "setting", true);
+			Scribe_Values.Look(ref maxDistanceToTable, "maxDistanceToTable", 100);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using HarmonyLib;
 using RimWorld;
@@ -9,33 +10,53 @@ using Verse.AI;
 
 namespace Room_Food
 {
-	[HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.BestFoodSourceOnMap_NewTemp))]
+	[HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.SpawnedFoodSearchInnerScan))]
 	[HarmonyPriority(Priority.Last)] // Harmony Priority last means prefix goes first
-	//public static Thing BestFoodSourceOnMap(Pawn getter, Pawn eater, bool desperate, out ThingDef foodDef, FoodPreferability maxPref, bool allowPlant, bool allowDrug, bool allowCorpse, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden, bool allowSociallyImproper, bool allowHarvest)
-	static class FoodFinder
+	public static class FoodFinder
 	{
-		public static bool Prefix(ref Thing __result, Pawn getter, Pawn eater, ref ThingDef foodDef, FoodPreferability maxPref, bool allowDrug, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden)
+		//private static Thing SpawnedFoodSearchInnerScan(Pawn eater, IntVec3 root, List<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null)
+		public static void Postfix(ref Thing __result, Pawn eater, IntVec3 root, List<Thing> searchSet, PathEndMode peMode, TraverseParms traverseParams, float maxDistance = 9999f, Predicate<Thing> validator = null)
 		{
-			if (FindRoomFood(getter, eater, maxPref, allowDrug, allowDispenserFull, allowDispenserEmpty, allowForbidden) is Thing food)
+			Log.Message($"Vanilla SpawnedFoodSearchInnerScan from <{root}> for {eater} was ({__result})"); ;
+			if (FindRoomFood(__result, eater, root, peMode, traverseParams, maxDistance, validator) is Thing roomFood)
 			{
-				foodDef = FoodUtility.GetFinalIngestibleDef(food);
-				__result = food;
-				return false;
+				Log.Message($"SpawnedFoodSearchInnerScan for {eater} found Room Food ({roomFood})"); ;
+				__result = roomFood;
 			}
-			return true;
 		}
 
-		public static Thing FindRoomFood(Pawn getter, Pawn eater, FoodPreferability maxPref, bool allowDrug, bool allowDispenserFull, bool allowDispenserEmpty, bool allowForbidden)
+		public static Thing FindRoomFood(Thing vanillaFoundFood, Pawn eater, IntVec3 root, PathEndMode peMode, TraverseParms traverseParams, float maxDistance, Predicate<Thing> foodValidator)
 		{
-			Log.Message($"RoomFood for {getter}:{eater}, {maxPref}, {allowDrug}, {allowDispenserFull}, {allowDispenserEmpty}, {allowForbidden}");
+			Pawn getter = traverseParams.pawn ?? eater;
+
+			Log.Message($"FindRoomFood for {getter}:{eater}");
+
 			if (!getter.IsFreeColonist || !eater.RaceProps.Humanlike)
 				return null;
 
+
+			//TODO Use districts : traversable area in a room?
 			Room room = null;
 
 			if (getter == eater)
 			{
-				float searchRadius = 9999;
+				float maxDistanceToTable = Mod.settings.maxDistanceToTable;
+
+				// If the food vanilla found get is farther than the max distance to check for a table,
+				// There could be a table on the way to that food.
+				// We might as well look for tables in a larger range, up to that food.
+				if (vanillaFoundFood != null)
+				{
+					float distToFoundFood = (root - vanillaFoundFood.Position).LengthHorizontal;
+					if (maxDistanceToTable < distToFoundFood)
+					{
+						Log.Message($"Increasing distance {maxDistanceToTable} to {distToFoundFood} to match {vanillaFoundFood}");
+	
+						maxDistanceToTable = distToFoundFood;
+					}
+				}
+
+
 				Predicate<Thing> tableValidator =
 					(Thing t) => t is Building b
 					&& b.def.surfaceType == SurfaceType.Eat
@@ -44,16 +65,19 @@ namespace Room_Food
 					&& !b.GetRoom().IsPrisonCell // Free colonist can't be in a prison cell
 					&& b.GetRoom().Regions.Any(r => !r.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree).NullOrEmpty());
 
-				Log.Message($"Buildings are: {getter.Map.listerBuildings.allBuildingsColonist.ToStringSafeEnumerable()}");
+				//Log.Message($"Buildings are: {getter.Map.listerBuildings.allBuildingsColonist.ToStringSafeEnumerable()}");
+
 				Thing table = GenClosest.ClosestThingReachable(getter.Position, getter.Map,
 					ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial),
-					PathEndMode.OnCell, TraverseParms.For(getter), searchRadius, tableValidator);
+					PathEndMode.OnCell, TraverseParms.For(getter), maxDistanceToTable, tableValidator);
 
 				Log.Message($"Table is {table}");
 				if (table != null)
 					room = table.GetRoom();
 			}
-			else room = eater.GetRoom();//getter Serving food to eater
+			else
+				room = eater.GetRoom();//getter Serving food to eater
+
 			Log.Message($"Room is {room}");
 
 			if (room == null || room.IsHuge)
@@ -61,48 +85,21 @@ namespace Room_Food
 
 			Log.Message($"{getter} finding food for {eater} in {room}");
 			
-			FoodPreferability minPref = eater.NonHumanlikeOrWildMan() ? FoodPreferability.NeverForNutrition
-				: eater.needs.food.CurCategory >= HungerCategory.UrgentlyHungry ? FoodPreferability.RawBad : FoodPreferability.MealAwful;
-			Log.Message($"{eater} is {eater.needs.food.CurCategory}, prefers{minPref}");
-
-			//Some of these are pointless but hey.
-			bool getterCanManipulate = getter.RaceProps.ToolUser && getter.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
-			Predicate<Thing> foodValidator = delegate (Thing t)
+			Predicate<Thing> searchValidator = delegate (Thing t)
 			{
-				if (t is Building_NutrientPasteDispenser n)
-					return allowDispenserFull
-						&& n.DispensableDef.ingestible.preferability >= minPref
-						&& n.DispensableDef.ingestible.preferability <= maxPref
-						&& getterCanManipulate
-						&& !getter.IsWildMan()
-						&& t.Faction == getter.Faction
-						&& n.powerComp.PowerOn
-						&& (allowDispenserEmpty || n.HasEnoughFeedstockInHoppers())
-						&& t.InteractionCell.Standable(t.Map)
-						&& getter.Map.reachability.CanReachNonLocal(getter.Position, new TargetInfo(t.InteractionCell, t.Map), PathEndMode.OnCell, TraverseParms.For(getter, Danger.Some))
-						&& eater.WillEat_NewTemp(n.DispensableDef, getter);
-
-				return (allowForbidden || !t.IsForbidden(getter))
-					&& t.IngestibleNow && t.def.IsNutritionGivingIngestible
-					&& t.def.ingestible.preferability >= minPref
-					&& t.def.ingestible.preferability <= maxPref
-					&& !(t is Corpse)
-					&& (allowDrug || !t.def.IsDrug)
-					&& !t.IsNotFresh()
-					&& !t.IsDessicated()
-					&& eater.WillEat_NewTemp(t, getter)
-					&& getter.AnimalAwareOf(t)
-					&& getter.CanReserve(t);
+				return
+					getter.Map.reachability.CanReach(root, t, peMode, traverseParams)
+					//	&& t.Spawned	// We just got a list from listerThings, they're spawned.
+					&& foodValidator(t);
 			};
 
-			List<Thing> foods = new List<Thing>();
-			foreach (Region region in room.Regions)
-				foods.AddRange(region.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree)
-					.Where(t => foodValidator(t)));
+			var foods = room.Regions.SelectMany(region => region.ListerThings.ThingsInGroup(ThingRequestGroup.FoodSourceNotPlantOrTree));
 
-			Thing foundFood = GenClosest.ClosestThing_Global(eater.Position, foods, 99999f, null, f => FoodUtility.FoodOptimality(eater, f, FoodUtility.GetFinalIngestibleDef(f), 0f));
+			Thing foundFood = GenClosest.ClosestThing_Global(eater.Position, foods, maxDistance, searchValidator,
+				f => FoodUtility.FoodOptimality(eater, f, FoodUtility.GetFinalIngestibleDef(f), (root - f.Position).LengthManhattan));
 
 			Log.Message($"Closest food is {foundFood}");
+
 			return foundFood;
 		}
 	}
